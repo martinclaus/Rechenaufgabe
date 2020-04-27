@@ -67,8 +67,8 @@ class Inquisitor(object):
 
     def _process_task(self, task):
         """Create a task and ask until correct."""
-        self.n_asked += 1
         answer = task.ask()
+        self.n_asked += 1
         if task.validate(answer):
             print("Richtig! {}".format(
                 random.choice(self.correct_emoji))
