@@ -43,16 +43,24 @@ class Inquisitor(object):
 
     def ask(self):
         """Ask questions until interupted."""
-        for task_cls in self._get_task_class():
-            task = task_cls(limit=self.limit)
-            while not task.validate():
-                task.ask()
-                if task.validate():
-                    print("Richtig! {}".format(
-                        random.choice(self.correct_emoji))
-                    )
-                else:
-                    print("Leider falsch. 😒")
+        try:
+            for task_cls in self._get_task_class():
+                self._process_task(task_cls)
+        except KeyboardInterrupt:
+            print()
+
+    def _process_task(self, task_cls):
+        """Create a task and ask until correct."""
+        task = task_cls(limit=self.limit)
+        while not task.validate():
+            task.ask()
+            if task.validate():
+                print("Richtig! {}".format(
+                random.choice(self.correct_emoji))
+                )
+            else:
+                print("Leider falsch. 😒")
+
 
     def _get_task_class(self):
         while True:
