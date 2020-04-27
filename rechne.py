@@ -18,6 +18,8 @@ class Inquisitor(object):
 
     """
 
+    correct_emoji = "😀😃😄😁😆😅🤣🙃😉😊"
+
     def __init__(self, limit=100):
         self.limit = limit
         self.types = []
@@ -46,7 +48,9 @@ class Inquisitor(object):
             while not task.validate():
                 task.ask()
                 if task.validate():
-                    print("Richtig! 😊")
+                    print("Richtig! {}".format(
+                        random.choice(self.correct_emoji))
+                    )
                 else:
                     print("Leider falsch. 😒")
 
