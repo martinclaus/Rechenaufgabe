@@ -20,57 +20,55 @@ class Inquisitor(object):
 
     correct_emoji = "😀😃😄😁😆😅🤣🙃😉😊"
 
-    def __init__(self, limit=100):
+    def __init__(self, limit=100, time_limit=600):
         self.limit = limit
-        self.types = []
+        self.tasks = []
+        self.n_correct = 0
+        self.n_asked = 0
         self.ask_for_type()
         self.ask()
 
     def ask_for_type(self, *args, **kwargs):
         """Ask for the type of calculation."""
         while True:
-            types = []
+            tasks = []
             type_str = input(u"Was möchtest du rechnen (+-*)?")
             if '+' in type_str:
-                types.append(AddTask)
+                tasks.append(AddTask(limit=self.limit))
             if '-' in type_str:
-                types.append(SubTask)
+                tasks.append(SubTask(limit=self.limit))
             if '*' in type_str:
-                types.append(MultiplyTask)
-            if types:
+                tasks.append(MultiplyTask())
+            if tasks:
                 break
-        self.types.extend(types)
+        self.tasks.extend(tasks)
         # remove duplicate entries
-        self.types = [*{*self.types}]
+        self.tasks = [*{*self.tasks}]
 
     def ask(self):
         """Ask questions until interupted."""
         try:
-            for task_cls in self._get_task_class():
-                self._process_task(task_cls)
+            for task in self._get_task():
+                self._process_task(task)
         except KeyboardInterrupt:
             print()
 
-    def _process_task(self, task_cls):
+    def _process_task(self, task):
         """Create a task and ask until correct."""
-        if task_cls is MultiplyTask:
-            task = task_cls(limit=2)
+        self.n_asked += 1
+        answer = task.ask()
+        if task.validate(answer):
+            print("Richtig! {}".format(
+            random.choice(self.correct_emoji))
+            )
+            self.n_correct += 1
         else:
-            task = task_cls(limit=self.limit)
-            
-        while not task.validate():
-            task.ask()
-            if task.validate():
-                print("Richtig! {}".format(
-                random.choice(self.correct_emoji))
-                )
-            else:
-                print("Leider falsch. 😒")
+            print("Leider falsch. 😒")
 
 
-    def _get_task_class(self):
+    def _get_task(self):
         while True:
-            yield random.choice(self.types)
+            yield random.choice(self.tasks)
 
 
 class Task(object):
@@ -85,10 +83,14 @@ class Task(object):
     def op(cls, x, y):
         return None
 
-    def __init__(self, limit):
+    def __init__(self, limit=None):
         self.limit = limit
-        self.number1, self.number2 = self._get_numbers()
-        self.result = None
+        self._numbers = None
+        self._ask_details()
+
+    def _ask_details(self):
+        """Ask for additional task parameter."""
+        pass
 
     def _get_numbers(self):
         """Create addition task."""
@@ -98,19 +100,23 @@ class Task(object):
 
     def ask(self):
         """Promt user for result."""
-        result = input(
-            "{} {} {} = ".format(self.number1, self.type, self.number2)
+        number1, number2 = self._get_numbers()
+        self._numbers = (number1, number2)
+        answer = input(
+            "{} {} {} = ".format(number1, self.type, number2)
         )
         try:
-            self.result = int(result)
+            answer = int(answer)
         except Exception:
-            self.result = None
-        return self.result
+            answer = None
+        return answer
 
-    def validate(self,):
+    def validate(self, answer=False):
         """Return True if correct result entered, else False."""
-        correct = (self.result == self.op(self.number1, self.number2))
-        return correct
+        if self._numbers:
+            return (answer == self.op(*self._numbers))
+        else:
+            return False
 
 
 class MultiplyTask(Task):
@@ -119,9 +125,20 @@ class MultiplyTask(Task):
     op = operator.mul
     type = "*"
 
+    def _ask_details(self):
+        while True:
+            numbers = input("Welche Zahlenreihen für die Multiplikation?")
+            if numbers.isnumeric():
+                break
+        self.row_numbers = tuple(map(int, numbers))
+
     def _get_numbers(self):
-        numbers = [self.limit, random.randint(0, 10)]
-        return tuple(random.sample(numbers, len(numbers)))
+        numbers = [
+            random.choice(self.row_numbers),
+            random.randint(0, 10)
+        ]
+        random.shuffle(numbers)
+        return tuple(numbers)
 
 class AddTask(Task):
     """Task for addition."""
