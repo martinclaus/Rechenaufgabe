@@ -30,11 +30,13 @@ class Inquisitor(object):
         """Ask for the type of calculation."""
         while True:
             types = []
-            type_str = input(u"Was möchtest du rechnen (+-)?")
+            type_str = input(u"Was möchtest du rechnen (+-*)?")
             if '+' in type_str:
                 types.append(AddTask)
             if '-' in type_str:
                 types.append(SubTask)
+            if '*' in type_str:
+                types.append(MultiplyTask)
             if types:
                 break
         self.types.extend(types)
@@ -51,7 +53,11 @@ class Inquisitor(object):
 
     def _process_task(self, task_cls):
         """Create a task and ask until correct."""
-        task = task_cls(limit=self.limit)
+        if task_cls is MultiplyTask:
+            task = task_cls(limit=2)
+        else:
+            task = task_cls(limit=self.limit)
+            
         while not task.validate():
             task.ask()
             if task.validate():
@@ -106,6 +112,16 @@ class Task(object):
         correct = (self.result == self.op(self.number1, self.number2))
         return correct
 
+
+class MultiplyTask(Task):
+    """Task for multiplication."""
+
+    op = operator.mul
+    type = "*"
+
+    def _get_numbers(self):
+        numbers = [self.limit, random.randint(0, 10)]
+        return tuple(random.sample(numbers, len(numbers)))
 
 class AddTask(Task):
     """Task for addition."""
