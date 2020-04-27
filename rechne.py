@@ -59,12 +59,11 @@ class Inquisitor(object):
         answer = task.ask()
         if task.validate(answer):
             print("Richtig! {}".format(
-            random.choice(self.correct_emoji))
+                random.choice(self.correct_emoji))
             )
             self.n_correct += 1
         else:
             print("Leider falsch. 😒")
-
 
     def _get_task(self):
         while True:
@@ -139,6 +138,7 @@ class MultiplyTask(Task):
         ]
         random.shuffle(numbers)
         return tuple(numbers)
+
 
 class AddTask(Task):
     """Task for addition."""
