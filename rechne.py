@@ -5,8 +5,10 @@ Small command line programm to pose addition and substraction tasks.
 
 import random
 import operator
+from timeit import default_timer as timer
 
 limit = 100
+time_limit = 600
 
 
 class Inquisitor(object):
@@ -20,8 +22,9 @@ class Inquisitor(object):
 
     correct_emoji = "😀😃😄😁😆😅🤣🙃😉😊"
 
-    def __init__(self, limit=100, time_limit=600):
+    def __init__(self, limit=limit, time_limit=time_limit):
         self.limit = limit
+        self.time_limit = time_limit
         self.tasks = []
         self.n_correct = 0
         self.n_asked = 0
@@ -47,11 +50,20 @@ class Inquisitor(object):
 
     def ask(self):
         """Ask questions until interupted."""
+        start_time = timer()
         try:
             for task in self._get_task():
                 self._process_task(task)
+                if (timer() - start_time > self.time_limit):
+                    break
         except KeyboardInterrupt:
             print()
+
+        print(
+            "Du hast {} von {} Aufgaben richtig gemacht!".format(
+                self.n_correct, self.n_asked
+            )
+        )
 
     def _process_task(self, task):
         """Create a task and ask until correct."""
